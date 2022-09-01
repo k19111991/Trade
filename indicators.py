@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 
-"""Technical Indicators"""
+"""
+Technical Indicators
+"""
 
 def MA(close, num = 20):
     """

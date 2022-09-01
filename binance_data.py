@@ -70,7 +70,7 @@ class OrderSide(Enum):
     BUY = "BUY"
     SELL = "SELL"
 
-class contractType(Enum):
+class ContractType(Enum):
     PERPETUAL = "PERPETUAL"
     CURRENT_MONTH = "CURRENT_MONTH"
     NEXT_MONTH = "NEXT_MONTH"

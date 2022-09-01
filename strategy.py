@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import indicators as ta
 
+"""
+Trading Strategy
+"""
+
 def ketlner(data, paras: dict):
     """ 
     Ketlner channel 
