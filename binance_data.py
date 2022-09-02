@@ -143,4 +143,11 @@ def get_klines(symbol: str, interval, starttime=None, endtime=None, limit=1000):
         
     print("------", symbol, "------", datetime.fromtimestamp(data[0][0] / 1000), "-", datetime.fromtimestamp(data[-1][0] / 1000))    
 
-    return data  
+    return data
+
+def get_price_data(symbol, interval, start_time, end_time):
+    column_name = ["Open time", "Open", "High", "Low", "Close", "Volume", "Close time", "Quote asset volume", 
+                   "Number of trades", "Taker buy base asset volume", "Taker buy quote asset volume", "Ignore"]
+    data = pd.DataFrame(get_klines(symbol, interval, start_time, end_time), columns = column_name)
+    return data
+
