@@ -200,12 +200,12 @@ class Backtest():
         df_source = ColumnDataSource(df)
         inc_source = ColumnDataSource(df[["index", "Open", "High", "Low", "Close"]][df.Close > df.Open])
         dec_source = ColumnDataSource(df[["index", "Open", "High", "Low", "Close"]][df.Close <= df.Open])
-        p_price.segment("index", "High", "index", "Low", color = "#5cad95", source = inc_source)
-        p_price.segment("index", "High", "index", "Low", color = "#cc331e", source = dec_source)
-        p_price.vbar("index", w, "Open", "Close", fill_color = "#5cad95", line_color = "#5cad95", source = inc_source)
-        p_price.vbar("index", w, "Open", "Close", fill_color = "#cc331e", line_color = "#cc331e", source = dec_source)
+        p_price.segment("index", "High", "index", "Low", color = "#728a7a", source = inc_source)
+        p_price.segment("index", "High", "index", "Low", color = "#9e3f3b", source = dec_source)
+        p_price.vbar("index", w, "Open", "Close", fill_color = "#728a7a", line_color = "#728a7a", source = inc_source)
+        p_price.vbar("index", w, "Open", "Close", fill_color = "#9e3f3b", line_color = "#9e3f3b", source = dec_source)
         p_price.xaxis.visible = False
-        r_price_for_hover = p_price.line(x = "index", y = "Close", line_width = 2, color = "#4c5445", alpha = 0, source = df_source)
+        r_price_for_hover = p_price.line(x = "index", y = "Close", line_width = 2, color = "#000000", alpha = 0, source = df_source)
             # set twinx volumn
         y_vol_start, y_vol_end = df.Volume.min() * 0.95, df.Volume.max() * 2 # 
         p_price.extra_y_ranges = {"vol": Range1d(y_vol_start, y_vol_end)}
@@ -258,20 +258,20 @@ class Backtest():
         ########################## p_trade render ##########################
         trade_list["index"] = [df.index[df.Date == exit][0] for exit in trade_list.ExitTime]
         trade_list["entry_index"] = [df.index[df.Date == entry][0] for entry in trade_list.EntryTime]
-        trade_list["size"] = ((trade_list.Profit.abs()) / trade_list.Profit.abs().max()) * 5 + 10
+        trade_list["radius"] = ((trade_list.Profit.abs()) / trade_list.Profit.abs().max()) * 5 + 10 # profit% |todo size
         profit_pos_source = ColumnDataSource(trade_list[trade_list.Profit > 0])
         profit_neg_source = ColumnDataSource(trade_list[trade_list.Profit <= 0])
-        r_trade_long_win = p_trade.triangle("index", "Profit", "size", fill_color = "darkseagreen", line_alpha = 0, 
+        r_trade_long_win = p_trade.triangle("index", "Profit", "radius", fill_color = "darkseagreen", line_alpha = 0, 
                                             source = ColumnDataSource(trade_list[(trade_list.Profit > 0) & (trade_list.Type == 1)]))
-        r_trade_long_loss = p_trade.triangle("index", "Profit", "size", fill_color = "indianred", line_alpha = 0, 
+        r_trade_long_loss = p_trade.triangle("index", "Profit", "radius", fill_color = "indianred", line_alpha = 0, 
                                              source = ColumnDataSource(trade_list[(trade_list.Profit <= 0) & (trade_list.Type == 1)]))
-        r_trade_short_win = p_trade.inverted_triangle("index", "Profit", "size", fill_color = "darkseagreen", line_alpha = 0,
+        r_trade_short_win = p_trade.inverted_triangle("index", "Profit", "radius", fill_color = "darkseagreen", line_alpha = 0,
                                                       source = ColumnDataSource(trade_list[(trade_list.Profit > 0) & (trade_list.Type == -1)]))
-        r_trade_short_loss = p_trade.inverted_triangle("index", "Profit", "size", fill_color = "indianred", line_alpha = 0,
+        r_trade_short_loss = p_trade.inverted_triangle("index", "Profit", "radius", fill_color = "indianred", line_alpha = 0,
                                                        source = ColumnDataSource(trade_list[(trade_list.Profit <= 0) & (trade_list.Type == -1)]))
         r_trade_win_dd = p_trade.vbar("index", 3 * w, "Drawdown", "Profit", fill_color = "darkseagreen", fill_alpha = 0.5, line_alpha = 0, source = profit_pos_source)
         r_trade_loss_dd = p_trade.vbar("index", 3 * w, "Drawdown", "Profit", fill_color = "indianred", fill_alpha = 0.5, line_alpha = 0, source = profit_neg_source)
-        r_trade_for_hover = p_trade.circle("index", "Profit", size = "size", fill_alpha = 0, line_alpha = 0, source = ColumnDataSource(trade_list))
+        r_trade_for_hover = p_trade.circle("index", "Profit", size = "radius", fill_alpha = 0, line_alpha = 0, source = ColumnDataSource(trade_list))
 
             # set legend
         trade_legend_item = [("Win trade", [r_trade_long_win, r_trade_short_win]), 
@@ -322,6 +322,8 @@ class Backtest():
             let max = Math.max.apply(null, source.data['High'].slice(i, j)),
                 min = Math.min.apply(null, source.data['Low'].slice(i, j));
             _bt_scale_range(p.y_range, min, max, true);
+            p.x_range.start = Math.max(Math.floor(p.x_range.start), Math.floor(- source.data['High'].length * 0.01));
+            p.x_range.end = Math.min(Math.ceil(p.x_range.end), Math.floor(source.data['High'].length * 1.01));
         """
         p_price.x_range.js_on_change("start", CustomJS(args = dict(p = p_price, source = df_source), code = y_range_callback))
         p_price.y_range.js_on_change("end", CustomJS(args = dict(p = p_price, source = df_source), code = y_range_callback))
