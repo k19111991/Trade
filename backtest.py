@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from bokeh.layouts import column
 from bokeh.plotting import figure, show
+from bokeh.layouts import column, gridplot
 from bokeh.io import output_notebook, curdoc
 from bokeh.palettes import Spectral, Dark2, RdYlBu, Viridis, Category10
 from bokeh.models import HoverTool, ColumnDataSource, CustomJS, Legend, LinearAxis, Range1d

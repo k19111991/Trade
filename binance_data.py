@@ -136,9 +136,12 @@ def get_klines(symbol: str, interval, starttime=None, endtime=None, limit=1000):
         parameter = "&".join(f"{key}={params[key]}" for key in params.keys())
         path = url + "?" + parameter
         kline = requests.get(path).json()
-        print(datetime.fromtimestamp(kline[0][0] / 1000), datetime.fromtimestamp(kline[-1][0] / 1000), len(kline))
-        data += kline
-        starttime = kline[-1][0] + 1
+        if kline:
+            data += kline
+            print(datetime.fromtimestamp(kline[0][0] / 1000), datetime.fromtimestamp(kline[-1][0] / 1000), len(kline))
+            starttime = kline[-1][0] + 1
+        else:
+            break
         params["startTime"] = starttime
         
     print("------", symbol, "------", datetime.fromtimestamp(data[0][0] / 1000), "-", datetime.fromtimestamp(data[-1][0] / 1000))    
