@@ -346,10 +346,77 @@ class Backtest():
 
         output_notebook()
         show(column(p_price, p_equity, p_trade))
+
+    def plot_trade(self): # Equity curve, MAE / profit, drawdown, MAE / trade count, 
+        trade_list = self.trade_list.copy()
+        trade_source = ColumnDataSource(data = trade_list)
+        trade_hover = [("Date", "@ExitTime{%Y-%m-%d %H:%M:%S}"), ("Size", "@Size"), ("PNL", "@Profit{0.0[00000]}"), 
+                             ("MAE", "@MAE{0.0[00000]}"), ("MFE", "@MFE{0.0[00000]}")]
+        trade_hover_tooltips = """<strong><pre style = "color: rgba(255, 255, 255 ,0.7);"><span style = "color: #ae8977;">""" + \
+                """\n<span style = "color: #ae8977;">""".join(["</span>: ".join(item) for item in trade_hover]) + "</pre></strong>"
+        hover_trade = HoverTool(tooltips = trade_hover_tooltips, formatters={"@ExitTime": "datetime"}, show_arrow = False)
+        hover_trade_MAEMFE = HoverTool(tooltips = trade_hover_tooltips, formatters={"@ExitTime": "datetime"}, 
+                                       show_arrow = False, mode = "vline")
+        trade_tools = ["xpan, box_select, xwheel_zoom, reset, save", hover_trade]
+        trade_tools_MAEMFE = ["xpan, box_select, xwheel_zoom, reset, save", hover_trade_MAEMFE]
         
-    def technical_analysis(self, ): # Equity curve, MAE / profit, drawdown, MAE / trade count, 
+        ########################## set figure ##########################
+        p_MAEMFE = figure(title = "MAE & MFE", plot_width = 480, plot_height = 300, toolbar_location = "above",
+                          y_axis_label = "MAE / MFE", x_axis_label = "Index", tools = trade_tools_MAEMFE,
+                          active_scroll = "xwheel_zoom", background_fill_alpha = 0.9)
+        p_MAE_MFE = figure(title = "MAE vs MFE", plot_width = 480, plot_height = 300, toolbar_location = "above", 
+                           y_axis_label = "MFE", x_axis_label = "MAE",  tools = trade_tools,
+                           active_scroll = "xwheel_zoom", background_fill_alpha = 0.9)
+        p_MFE_PNL = figure(title = "MFE vs PNL", plot_width = 480, plot_height = 300, toolbar_location = "above",
+                           y_axis_label = "MFE", x_axis_label = "PNL", tools = trade_tools,
+                           active_scroll = "xwheel_zoom", background_fill_alpha = 0.9)
+        p_MAE_PNL = figure(title = "MAE vs PNL", plot_width = 480, plot_height = 300, toolbar_location = "above",
+                           y_axis_label = "MAE", x_axis_label = "PNL", tools = trade_tools, x_range = p_MFE_PNL.x_range,
+                           active_scroll = "xwheel_zoom", background_fill_alpha = 0.9)
+
+        ########################## set render ##########################
+        r_MFE = p_MAEMFE.varea(x = "index", y1 = "MFE", y2 = 0, color = "#728a7a", source = trade_source)
+        r_MAE = p_MAEMFE.varea(x = "index", y1 = "MAE", y2 = 0, color = "#9e3f3b", source = trade_source)
+        r_Profit = p_MAEMFE.line(x = "index", y = "Profit", line_width = 1.5, color = "#c7986e", source = trade_source, muted_alpha = 0.1)
+        p_MAE_MFE.circle('MAE', 'MFE', size = 5.5, source = trade_source, color = "#586d80", hover_color = "#b88461")
+        p_MFE_PNL.circle('Profit', 'MFE', size = 5.5, source = trade_source, color = "darkseagreen", 
+                         hover_color = "indianred", hover_alpha = 0.8)
+        p_MAE_PNL.circle('Profit', 'MAE', size = 5.5, source = trade_source, color = "indianred", 
+                         hover_color = "darkseagreen", hover_alpha = 0.8)
+        trade_legend_item = [("Profit", [r_Profit]), ("MFE", [r_MFE]), ("MAE", [r_MAE])]
+        legend_trade = Legend(items = trade_legend_item, label_text_color = "white", background_fill_alpha = 0.1, 
+                              glyph_height = 8, glyph_width = 8, label_text_font_size = "8pt")
+        p_MAEMFE.add_layout(legend_trade)
+        p_MAEMFE.legend.location = "top_right"
+        p_MAEMFE.legend.click_policy="mute"
+        r_Profit.muted = True
+
+        ########################## set legend & figure ##########################
+        callback_hover = CustomJS(args = {'p': p_MAEMFE}, code = """
+                                        var tooltips = document.getElementsByClassName("bk-tooltip");
+                                        for (var i = 0; i < tooltips.length; i++) {
+                                            tooltips[i].style.top = '25px'; 
+                                            tooltips[i].style.left = '80px'; 
+                                            tooltips[i].style["backgroundColor"] = "rgba(0, 0, 0, 0.01)";
+                                        tooltips[i].style["border"] = "0px";} """)
+        hover_trade.callback = callback_hover
+        hover_trade_MAEMFE.callback = callback_hover
+
+        for fig in [p_MAEMFE, p_MAE_MFE, p_MFE_PNL, p_MAE_PNL]:
+            fig.grid.grid_line_alpha = 0.05
+            fig.xaxis.axis_label_text_font_size = "9pt"    
+            fig.yaxis.axis_label_text_font_size = "9pt"
+            fig.axis.axis_label_text_font_style = "bold"
+            fig.axis.major_label_text_font_size = "8pt"
+
+        show(gridplot([[p_MAEMFE, p_MFE_PNL], [p_MAE_MFE, p_MAE_PNL]]))
+        
+    def technical_analysis(self, ): # price, technical lines,
         None
         
     def optimization(self):
+        None
+ 
+    def optimization_graph(self):
         None
         
