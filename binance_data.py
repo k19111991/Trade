@@ -97,11 +97,12 @@ def get_symbol(target: str = None, margined = "USDT", status = "TRADING"):
         SymbolList = [s for s in SymbolList if s[-len(margined):] == margined]
     return SymbolList
 
-def datetime_timestamp(year, month, day, hour = 0, min = 0, second = 0):
+def datetime_timestamp(year, month, day, hour = 0, minute = 0, second = 0):
     """
     Milliseconds Timestamp | UTC +8
+    
     """
-    time = datetime(year, month, day, hour, min, second).timestamp()
+    time = datetime(year, month, day, hour, minute, second).timestamp()
     return int(time) * 1000
 
 def get_klines(symbol: str, interval, starttime=None, endtime=None, limit=1000):

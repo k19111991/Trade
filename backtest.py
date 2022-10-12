@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from bokeh.plotting import figure, show
 from bokeh.layouts import column, gridplot
 from bokeh.io import output_notebook, curdoc
@@ -142,13 +143,17 @@ class Backtest():
         """
         summary = {}
         summary["Net Profit"] = data.Equity.iloc[-1] - self.capital
+        summary["Profit %"] = (data.Equity.iloc[-1] - self.capital) / self.capital
         summary["Gross Profit"] = tradelist.Profit[tradelist.Profit > 0].sum()
         summary["Gross Loss"] = tradelist.Profit[tradelist.Profit <= 0].sum()
-        summary["Commission"] = self.trade_cost
         summary["Max Drawdown"] = data.Drawdown.min()
         summary["Max Drawdown Date"] = str(data.Date[data.Drawdown == data.Drawdown.min()].values[0])
+        summary["Total Trade"] = len(tradelist)
+        summary["Avg Winning Trade"] = tradelist.Profit[tradelist.Profit >= 0].mean()
+        summary["Avg Losing Trade"] = tradelist.Profit[tradelist.Profit < 0].mean()     
         summary["Profit Factor"] = summary["Gross Profit"] / -summary["Gross Loss"]
         summary["Win Rate"] = (tradelist.Profit > 0).sum() / len(tradelist)
+        summary["Commission"] = self.trade_cost  
         ########################## Not correct, need to  annualize the return and standard deviation ##########################
         summary["Sharpe Ratio"] = (tradelist.Profit.mean() - self.rate) / tradelist.Profit.std()
         summary["Sortino Ratio"] = (tradelist.Profit.mean() - self.rate) / tradelist.Profit[tradelist.Profit <= 0].std()
@@ -415,7 +420,25 @@ class Backtest():
         None
         
     def optimization(self):
-        None
+    def optimization(self, para_grid):
+        ########################## set parameter DataFrame ##########################
+        optimization_para = pd.DataFrame({"Index": [0]})
+        for i in para_grid.keys():
+            optimization_para = optimization_para.merge(pd.DataFrame({i: para_grid[i]}), how = "cross")
+        optimization_para = optimization_para.drop(["Index"], axis = 1)
+        optimization_summary = pd.DataFrame(columns=self.summary.keys())
+        start_optimization = datetime.now()
+        for i in optimization_para.index:
+            start_loop = datetime.now()
+            self.parameter = dict(optimization_para.iloc[i])
+            self.strategy_performance()
+            optimization_summary = pd.concat([optimization_summary, pd.DataFrame({k: [v] for k, v in self.summary.items()})], axis = 0, ignore_index=True)
+            end_loop = datetime.now()
+            print(str(i + 1) + " / " + str(len(optimization_para)) + "   " +
+                  "Elapsed Time: " + str(end_loop - start_optimization) + "   " +
+                  "Remaining Time: " + str((end_loop - start_loop) * (len(optimization_para) - i - 1)))
+            self.optimization_report = pd.concat([optimization_para, optimization_summary], axis = 1)
+        return self.optimization_report
  
     def optimization_graph(self):
         None
